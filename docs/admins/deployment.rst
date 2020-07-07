@@ -15,8 +15,8 @@ Requirements
 IRRd requires:
 
 * Linux or MacOS. Other platforms are untested, but may work.
-* Python 3.6, with `pip` and `virtualenv` installed.
-  At this point, 3.7 has had limited testing.
+* Python 3.6 or 3.7 with `pip` and `virtualenv` installed.
+  At this point, 3.8 has had limited testing.
 * A recent version of PostgreSQL. Versions 9.6 and 10.5 have been
   extensively tested.
 * At least 32GB RAM
@@ -58,7 +58,7 @@ A few PostgreSQL settings need to be changed from their default:
   memory to benefit from caching, with a max of a few GB.
 * ``max_connections`` may need to be increased from 100. Generally, there
   will be one open connection for:
-  * Each open whois connection
+  * Each permitted whois connection
   * Each running mirror import and export process
   * Each RPKI update process
   * Each run of ``irrd_load_database``
@@ -67,6 +67,9 @@ A few PostgreSQL settings need to be changed from their default:
   to log all SQL queries to aid in debugging any issues.
   Note that initial imports of data produce significant logs if all queries
   are logged - importing 1GB of data can result in 2-3GB of logs.
+
+The transaction isolation level should be set to "Read committed". This is
+the default in PostgreSQL.
 
 The database will be in the order of three times as large as the size of
 the RPSL text imported.
@@ -83,6 +86,7 @@ the RPSL text imported.
 Redis configuration
 -------------------
 Redis is required for communication and persistence between IRRd's processes.
+IRRd has been tested on Redis 3 and 4.
 Beyond a default Redis installation, it is recommended to:
 
 * Disable snapshotting, by removing all ``save`` lines from the
@@ -92,6 +96,7 @@ Beyond a default Redis installation, it is recommended to:
 * Enable unix socket support with the ``unixsocket`` configuration
   option in Redis, and using a unix socket URL in the ``redis_url``
   configuration in IRRd. This improves performance.
+* Increase ``maxmemory`` to 1GB (no limit is also fine)
 
 IRRd will recover from a Redis restart, but certain queries may fail
 while Redis is unavailable.
